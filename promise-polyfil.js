@@ -102,3 +102,11 @@ const promise = new MyPromise((resolve, reject) => {
 		(val) => console.log(val),
 		(val) => console.log(val * 12)
 	);
+
+const rejectPromise = new MyPromise((resolve, reject) => {
+	setTimeout(() => {
+		reject('hello baby');
+	}, 2000);
+}).catch((error) => {
+	console.log(error);
+});
