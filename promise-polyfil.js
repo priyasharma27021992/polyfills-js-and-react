@@ -1,33 +1,28 @@
-const PENDING = 'PENDING';
-const FULFILLED = 'FULFILLED';
-const REJECTED = 'REJECTED';
-
+const STATES = {
+	PENDING: 'PENDING',
+	FULFILLED: 'FULFILLED',
+	REJECTED: 'REJECTED',
+};
 class MyPromise {
 	constructor(executor) {
-		this.state = PENDING;
-		this.value = undefined;
-		this.reason = undefined;
-		this.fulfilledCallbacks = [];
-		this.rejectedCallbacks = [];
+		this.state = STATES.PENDING;
+		this.value = null;
+		this.reason = null;
+		this.fulfilledCbs = [];
+		this.rejectedCbs = [];
 
-		//they are not defined as this.resolve as they are not avilable in actual promise class too.
-		// Also, they are private closures
 		const resolve = (value) => {
-			if (this.state !== PENDING) return;
-			this.state = FULFILLED;
+			if (this.state !== STATES.PENDING) return;
+			this.state = STATES.FULFILLED;
 			this.value = value;
-			queueMicrotask(() => {
-				this.fulfilledCallbacks.forEach((cb) => cb(value));
-			});
+			this.fulfilledCbs.forEach((cb) => cb(value));
 		};
 
-		const reject = (reason) => {
-			if (this.state !== PENDING) return;
-			this.state = REJECTED;
-			this.reason = reason;
-			queueMicrotask(() => {
-				this.rejectedCallbacks.forEach((cb) => cb(reason));
-			});
+		const reject = (error) => {
+			if (this.state !== STATES.PENDING) return;
+			this.state = STATES.REJECTED;
+			this.reason = error;
+			this.rejectedCbs.forEach((cb) => cb(reason));
 		};
 
 		try {
@@ -37,11 +32,11 @@ class MyPromise {
 		}
 	}
 
-	then(onFulFilled, onRejected) {
+	then(onFullfilled, onRejected) {
 		return new MyPromise((resolve, reject) => {
-			const onFulFilledHandler = () => {
+			const onFullfilledHandler = (value) => {
 				try {
-					const result = onFulFilled ? onFulFilled(this.value) : this.value;
+					const result = onFullfilled ? onFullfilled(value) : this.value;
 					resolve(result);
 				} catch (err) {
 					reject(err);
@@ -50,63 +45,48 @@ class MyPromise {
 
 			const onRejectedHandler = () => {
 				try {
-					const result = onRejected ? onRejected(this.reason) : this.reason;
-					reject(result);
+					const result = onRejected ? onRejected(reason) : this.reason;
+					resolve(result);
 				} catch (err) {
 					reject(err);
 				}
 			};
 
-			if (this.state === FULFILLED) {
-				console.log('came here 1', this);
-				queueMicrotask(() => {
-					onFulFilledHandler(this.value);
-				});
-			} else if (this.state === REJECTED) {
-				console.log('came here 2', this);
-				queueMicrotask(() => {
-					onRejectedHandler(this.reason);
-				});
+			if (this.state === STATES.FULFILLED) {
+				onFullfilledHandler(this.value);
+			} else if (this.state === STATES.REJECTED) {
+				onRejectedHandler(this.reason);
 			} else {
-				this.fulfilledCallbacks.push(onFulFilledHandler);
-				this.rejectedCallbacks.push(onRejectedHandler);
+				this.fulfilledCbs.push(onFullfilledHandler);
+				this.rejectedCbs.push(onRejectedHandler);
 			}
 		});
 	}
 
-	catch(onRejected) {
-		return this.then(null, onRejected);
+	catch(cb) {
+		return this.then(null, cb);
 	}
 
-	finally(callback) {
+	finally(cb) {
 		return this.then(
 			(val) => {
-				callback();
+				cb();
 				return val;
 			},
 			(reason) => {
-				callback();
-				throw reason;
+				cb();
+				return reason;
 			}
 		);
 	}
 }
 
-const promise = new MyPromise((resolve, reject) => {
+const p1 = new MyPromise((resolve, reject) => {
 	setTimeout(() => {
-		reject(10);
-	});
-})
-	.then((val) => val * 10)
-	.then(
-		(val) => console.log(val),
-		(val) => console.log(val * 12)
-	);
-
-const rejectPromise = new MyPromise((resolve, reject) => {
-	setTimeout(() => {
-		reject('hello baby');
-	}, 2000);
-}).catch((error) => {
-	console.log(error);
+		resolve(
+			'Hello My love! You are doing awesome! Keep going darling! You will see the results of your hardwork'
+		);
+	}, 500);
 });
+
+p1.then(console.log).catch((err) => console.log(err));
