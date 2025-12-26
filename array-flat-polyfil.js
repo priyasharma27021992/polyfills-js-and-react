@@ -1,18 +1,17 @@
 Array.prototype.flatArr = function () {
-	console.log('this', this);
-	const res = [];
-	const flat = (arr) => {
-		for (let i = 0; i < arr.length; i++) {
-			if (Array.isArray(arr[i])) {
-				flat(arr[i]);
+	const insideFlat = (arr) => {
+		const newArr = arr.reduce((acc, ele) => {
+			if (Array.isArray(ele)) {
+				const ret = insideFlat(ele);
+				acc.push(...ret);
 			} else {
-				res.push(arr[i]);
+				acc.push(ele);
 			}
-		}
+			return acc;
+		}, []);
+		return newArr;
 	};
-	flat(this);
-	console.log('res', res);
-	return res;
+	return insideFlat(this);
 };
 
 [1, [2, [4, 5, [6, 7]]], 8].flatArr();
