@@ -1,16 +1,20 @@
 const debounce = (func, delay) => {
 	let timeoutId;
-	return (args) => {
+	return function (...args) {
+		console.log('args', args);
 		if (timeoutId) {
 			clearTimeout(timeoutId);
 		}
 		timeoutId = setTimeout(() => {
-			return func.call(this, args);
+			func.apply(this, args);
 		}, delay);
 	};
 };
 
-const add = (a, b) => a + b;
+const add = (a, b) => {
+	console.log('a', a, 'b', b, 'a+b', a + b);
+};
 
 const debouncedAdd = debounce(add, 1000);
 console.log(debouncedAdd(1, 2));
+console.log(debouncedAdd(2, 3));
